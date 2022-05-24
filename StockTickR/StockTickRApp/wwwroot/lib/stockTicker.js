@@ -1,4 +1,6 @@
 ﻿// Crockford's supplant method (poor man's templating)
+var signalR = "@microsoft/signalr";
+
 if (!String.prototype.supplant) {
     String.prototype.supplant = function (o) {
         return this.replace(/{([^{}]*)}/g,
@@ -10,72 +12,95 @@ if (!String.prototype.supplant) {
     };
 }
 
+//Id = _symbols.FindIndex(a => a.Contains(coin.Symbol)),
+//    Symbol = coin.Symbol,
+//    PriceChange = coin.PriceChange,
+//    PriceChangePercent = coin.PriceChangePercent,
+//    Volume = coin.Volume,
+//    OpenPrice = coin.OpenPrice,
+//    HighPrice = coin.HighPrice,
+//    LowPrice = coin.LowPrice,
+//    ClosePrice = coin.PrevDayClosePrice,
+
+
 var stockTable = document.getElementById('stockTable');
 var stockTableBody = stockTable.getElementsByTagName('tbody')[0];
-var rowTemplate = '<td>{symbol}</td><td>{price}</td><td>{dayOpen}</td><td>{dayHigh}</td><td>{dayLow}</td><td class="changeValue"><span class="dir {directionClass}">{direction}</span> {change}</td><td>{percentChange}</td>';
-var tickerTemplate = '<span class="symbol">{symbol}</span> <span class="price">{price}</span> <span class="changeValue"><span class="dir {directionClass}">{direction}</span> {change} ({percentChange})</span>';
+var rowTemplate = '<td>{symbol}</td><td>{lastPrice}</td><td>{openPrice}</td><td>{highPrice}</td><td>{lowPrice}</td><td class="changeValue"><span class="dir {directionClass}"></span> {priceChange}</td><td>{priceChangePercent}</td>';
+//var tickerTemplate = '<span class="symbol">{symbol}</span> <span class="price">{closePrice}</span> <span class="changeValue"><span class="dir {directionClass}"></span> {priceChange} ({priceChangePercent})</span>';
 var stockTicker = document.getElementById('stockTicker');
 var stockTickerBody = stockTicker.getElementsByTagName('ul')[0];
 var up = '▲';
 var down = '▼';
+var token = "eyJhbGciOiJodHRwOi8vd3d3LnczLm9yZy8yMDAxLzA0L3htbGRzaWctbW9yZSNobWFjLXNoYTI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjEiLCJlbWFpbCI6Inl1bnVzb3pkZW1pcjQ2OEBnbWFpbC5jb20iLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1lIjoieXVudXMiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9tb2JpbGVwaG9uZSI6IjUzOTMxODY4NjQiLCJJcEFkZHJlc3MiOiI6OjEiLCJJc0RlbGV0ZWQiOiJGYWxzZSIsImh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vd3MvMjAwOC8wNi9pZGVudGl0eS9jbGFpbXMvcm9sZSI6IlVzZXIiLCJuYmYiOjE2NTMzNzUwMDcsImV4cCI6MTY1MzM5NDgwNywiaXNzIjoiWXVudXNAeXVudXMuY29tIiwiYXVkIjoiaHR0cHM6Ly9sb2NhbGhvc3Q6MzAwMCJ9.f-GG3Lk5srOQUuLs706nNu3NZ3G6lQqNtKF5LRJLC4w";
 
-let connection = new signalR.HubConnectionBuilder()
-    .withUrl("/stocks")
+const connection = new signalR.HubConnectionBuilder()
+    .withUrl("https://localhost:7250/portfolio?access_token=" + token, {
+        //.withUrl("http://fahax.xyz/chat", {
+        //skipNegotiation: false,
+        //transport: 'ServerSentEvents',
+
+        //transport: signalR.HttpTransportType.WebSockets,
+
+        //   accessTokenFactory: () => 
+    })
     .build();
 
-connection.start().then(function () {
-    connection.invoke("GetAllStocks").then(function (stocks) {
-        for (let i = 0; i < stocks.length; i++) {
-            displayStock(stocks[i]);
-        }
-    });
-
-    connection.invoke("GetMarketState").then(function (state) {
-        if (state === 'Open') {
-            marketOpened();
+async function start() {
+    try {
+        connection.start().then(function () {
+            console.log("SignalR Connected.");
             startStreaming();
-        } else {
-            marketClosed();
-        }
-    });
 
-    document.getElementById('open').onclick = function () {
-        connection.invoke("OpenMarket");
-    }
-
-    document.getElementById('close').onclick = function () {
-        connection.invoke("CloseMarket");
-    }
-
-    document.getElementById('reset').onclick = function () {
-        connection.invoke("Reset").then(function () {
-            connection.invoke("GetAllStocks").then(function (stocks) {
-                for (let i = 0; i < stocks.length; ++i) {
-                    displayStock(stocks[i]);
-                }
-            });
         });
+    } catch (err) {
+        console.log(err);
     }
+};
+
+connection.onclose(async () => {
+    console.log("Kapandı");
+    //await start();
 });
 
-connection.on("marketOpened", function () {
-    marketOpened();
-    startStreaming();
-});
+// Start the connection.
+start();
 
-connection.on("marketClosed", function () {
-    marketClosed();
-});
+//async function start() {
+//    try {
+//        connection.start().then(function () {
+//            console.log("SignalR Connected.");
+//        });
+//    } catch (err) {
+//        console.log(err);
+//        setTimeout(start, 5000);
+//    }
+//};
+//start();
+
+
 
 function startStreaming() {
-    connection.stream("StreamStocks").subscribe({
-        close: false,
-        next: displayStock,
-        error: function (err) {
-            logger.log(err);
-        }
-    });
+    console.log("Stream Çalıştı.");
+    connection.stream("DataStream", 500)
+        .subscribe({
+            next: (item) => {
+                console.log("Stream Bağlandı.");
+                //item.forEach((coin) => {
+
+                //    displayStock(coin);
+                //});
+
+            },
+            complete: () => {
+                console.log(item);
+            },
+            error: (err) => {
+                console.log("Hata var: " + err);
+            },
+        });
 }
+
+
 
 var pos = 30;
 var tickerInterval;
@@ -90,40 +115,40 @@ function moveTicker() {
     stockTickerBody.style.marginLeft = pos + 'px';
 }
 
-function marketOpened() {
-    tickerInterval = setInterval(moveTicker, 20);
-    document.getElementById('open').setAttribute("disabled", "disabled");
-    document.getElementById('close').removeAttribute("disabled");
-    document.getElementById('reset').setAttribute("disabled", "disabled");
-}
+//function marketOpened() {
+//    tickerInterval = setInterval(moveTicker, 20);
+//    document.getElementById('open').setAttribute("disabled", "disabled");
+//    document.getElementById('close').removeAttribute("disabled");
+//    document.getElementById('reset').setAttribute("disabled", "disabled");
+//}
 
-function marketClosed() {
-    if (tickerInterval) {
-        clearInterval(tickerInterval);
-    }
-    document.getElementById('open').removeAttribute("disabled");
-    document.getElementById('close').setAttribute("disabled", "disabled");
-    document.getElementById('reset').removeAttribute("disabled");
-}
+//function marketClosed() {
+//    if (tickerInterval) {
+//        clearInterval(tickerInterval);
+//    }
+//    document.getElementById('open').removeAttribute("disabled");
+//    document.getElementById('close').setAttribute("disabled", "disabled");
+//    document.getElementById('reset').removeAttribute("disabled");
+//}
 
 function displayStock(stock) {
-    var displayStock = formatStock(stock);
-    addOrReplaceStock(stockTableBody, displayStock, 'tr', rowTemplate);
-    addOrReplaceStock(stockTickerBody, displayStock, 'li', tickerTemplate);
+    addOrReplaceStock(stockTableBody, stock, 'tr', rowTemplate);
+    //  addOrReplaceStock(stockTickerBody, stock, 'li', tickerTemplate);
 }
 
 function addOrReplaceStock(table, stock, type, template) {
     var child = createStockNode(stock, type, template);
 
     // try to replace
+
     var stockNode = document.querySelector(type + "[data-symbol=" + stock.symbol + "]");
     if (stockNode) {
         var change = stockNode.querySelector(".changeValue");
         var prevChange = parseFloat(change.childNodes[1].data);
-        if (prevChange > stock.change) {
+        if (prevChange > stock.priceChange) {
             child.className = "decrease";
         }
-        else if (prevChange < stock.change) {
+        else if (prevChange < stock.priceChange) {
             child.className = "increase";
         }
         else {
@@ -134,14 +159,6 @@ function addOrReplaceStock(table, stock, type, template) {
         // add new stock
         table.appendChild(child);
     }
-}
-
-function formatStock(stock) {
-    stock.price = stock.price.toFixed(2);
-    stock.percentChange = (stock.percentChange * 100).toFixed(2) + '%';
-    stock.direction = stock.change === 0 ? '' : stock.change >= 0 ? up : down;
-    stock.directionClass = stock.change === 0 ? 'even' : stock.change >= 0 ? 'up' : 'down';
-    return stock;
 }
 
 function createStockNode(stock, type, template) {

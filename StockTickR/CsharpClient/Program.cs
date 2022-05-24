@@ -13,7 +13,7 @@ namespace CsharpClient
         static async Task Main(string[] args)
         {
             var connection = new HubConnectionBuilder()
-                .WithUrl("http://localhost:5000/stocks")
+                .WithUrl("http://localhost:20814/stocks")
                 .ConfigureLogging(logging =>
                 {
                     logging.AddConsole();

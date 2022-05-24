@@ -24,7 +24,7 @@ namespace StockTickR
 
         private readonly TimeSpan _updateInterval = TimeSpan.FromMilliseconds(250);
         private readonly Random _updateOrNotRandom = new Random();
-
+        int abc = 0;
         private Timer _timer;
         private volatile bool _updatingStockPrices;
         private volatile MarketState _marketState;
@@ -127,7 +127,39 @@ namespace StockTickR
             {
                 new Stock { Symbol = "MSFT", Price = 107.56m },
                 new Stock { Symbol = "AAPL", Price = 215.49m },
-                new Stock { Symbol = "GOOG", Price = 1221.16m }
+                new Stock { Symbol = "GOOG", Price = 1221.15m },
+                new Stock { Symbol = "ASDC", Price = 123.47m },
+                new Stock { Symbol = "PROP", Price = 56.31m },
+                new Stock { Symbol = "GFSA", Price = 12.22m },
+                new Stock { Symbol = "AJSC", Price = 21.53m },
+                 new Stock { Symbol = "MSAFT", Price = 107.56m },
+                new Stock { Symbol = "AAAPL", Price = 215.49m },
+                new Stock { Symbol = "GOAOG", Price = 1221.15m },
+                new Stock { Symbol = "ASADC", Price = 123.47m },
+                new Stock { Symbol = "PRHOP", Price = 56.31m },
+                new Stock { Symbol = "GFGSA", Price = 12.22m },
+                new Stock { Symbol = "AJDSC", Price = 21.53m },
+                 new Stock { Symbol = "MSSFT", Price = 107.56m },
+                new Stock { Symbol = "AASPL", Price = 215.49m },
+                new Stock { Symbol = "GOOBG", Price = 1221.15m },
+                new Stock { Symbol = "ASDVC", Price = 123.47m },
+                new Stock { Symbol = "PRVXOP", Price = 56.31m },
+                new Stock { Symbol = "GFBSA", Price = 12.22m },
+                new Stock { Symbol = "AJSC", Price = 21.53m },
+                 new Stock { Symbol = "MXCSFT", Price = 107.56m },
+                new Stock { Symbol = "AAPL", Price = 215.49m },
+                new Stock { Symbol = "XCSD", Price = 1221.15m },
+                new Stock { Symbol = "CXXZ", Price = 123.47m },
+                new Stock { Symbol = "CX", Price = 56.31m },
+                new Stock { Symbol = "ASI", Price = 12.22m },
+                new Stock { Symbol = "ASYTD", Price = 21.53m },
+                 new Stock { Symbol = "MSDSFT", Price = 107.56m },
+                new Stock { Symbol = "AANDPL", Price = 215.49m },
+                new Stock { Symbol = "SDFC", Price = 1221.15m },
+                new Stock { Symbol = "ASDX", Price = 123.47m },
+                new Stock { Symbol = "ASDWQ", Price = 56.31m },
+                new Stock { Symbol = "YEW", Price = 12.22m },
+                new Stock { Symbol = "35W", Price = 21.53m }
             };
 
             stocks.ForEach(stock => _stocks.TryAdd(stock.Symbol, stock));
@@ -137,6 +169,8 @@ namespace StockTickR
         {
             // This function must be re-entrant as it's running as a timer interval handler
             await _updateStockPricesLock.WaitAsync();
+            abc = abc + 1;
+
             try
             {
                 if (!_updatingStockPrices)
@@ -163,7 +197,7 @@ namespace StockTickR
         {
             // Randomly choose whether to udpate this stock or not
             var r = _updateOrNotRandom.NextDouble();
-            if (r > 0.1)
+            if (r > 0.2)
             {
                 return false;
             }
