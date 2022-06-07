@@ -1,5 +1,4 @@
 ﻿// Crockford's supplant method (poor man's templating)
-var signalR = "@microsoft/signalr";
 
 if (!String.prototype.supplant) {
     String.prototype.supplant = function (o) {
@@ -31,17 +30,25 @@ var stockTicker = document.getElementById('stockTicker');
 var stockTickerBody = stockTicker.getElementsByTagName('ul')[0];
 var up = '▲';
 var down = '▼';
-var token = "eyJhbGciOiJodHRwOi8vd3d3LnczLm9yZy8yMDAxLzA0L3htbGRzaWctbW9yZSNobWFjLXNoYTI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjEiLCJlbWFpbCI6Inl1bnVzb3pkZW1pcjQ2OEBnbWFpbC5jb20iLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1lIjoieXVudXMiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9tb2JpbGVwaG9uZSI6IjUzOTMxODY4NjQiLCJJcEFkZHJlc3MiOiI6OjEiLCJJc0RlbGV0ZWQiOiJGYWxzZSIsImh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vd3MvMjAwOC8wNi9pZGVudGl0eS9jbGFpbXMvcm9sZSI6IlVzZXIiLCJuYmYiOjE2NTMzNzUwMDcsImV4cCI6MTY1MzM5NDgwNywiaXNzIjoiWXVudXNAeXVudXMuY29tIiwiYXVkIjoiaHR0cHM6Ly9sb2NhbGhvc3Q6MzAwMCJ9.f-GG3Lk5srOQUuLs706nNu3NZ3G6lQqNtKF5LRJLC4w";
+
+var token = "eyJhbGciOiJodHRwOi8vd3d3LnczLm9yZy8yMDAxLzA0L3htbGRzaWctbW9yZSNobWFjLXNoYTI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjIiLCJlbWFpbCI6Inl1bnVzb3pkZW1pcjQ2OEBnbWFpbC5jb20iLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1lIjoic3RyaW5nIiwiaHR0cDovL3NjaGVtYXMueG1sc29hcC5vcmcvd3MvMjAwNS8wNS9pZGVudGl0eS9jbGFpbXMvbW9iaWxlcGhvbmUiOiI1MzkzMTg2ODY0IiwiSXBBZGRyZXNzIjoiOjoxIiwiSXNEZWxldGVkIjoiRmFsc2UiLCJodHRwOi8vc2NoZW1hcy5taWNyb3NvZnQuY29tL3dzLzIwMDgvMDYvaWRlbnRpdHkvY2xhaW1zL3JvbGUiOiJVc2VyIiwibmJmIjoxNjUzNzU1MDE3LCJleHAiOjE2NTM3NzQ4MTcsImlzcyI6Ill1bnVzQHl1bnVzLmNvbSIsImF1ZCI6Imh0dHBzOi8vbG9jYWxob3N0OjMwMDAifQ.CetqsKaEblNm8QpcrVn6wc-qX8EDcyY6K_pGpnsYZHs";
 
 const connection = new signalR.HubConnectionBuilder()
-    .withUrl("https://localhost:7250/portfolio?access_token=" + token, {
-        //.withUrl("http://fahax.xyz/chat", {
-        //skipNegotiation: false,
+
+    //.withUrl("https://localhost:7250/portfolio?access_token=" + token, {
+
+    //.withUrl("https://fhx.idealdata.com.tr/binance", {
+    //.withUrl("https://fahax.xyz/portfolio?access_token=" + token, {
+
+    .withUrl("https://localhost:7250/binance", {
+
+        //  skipNegotiation: true,
         //transport: 'ServerSentEvents',
 
-        //transport: signalR.HttpTransportType.WebSockets,
+        transport: signalR.HttpTransportType.WebSockets,
 
-        //   accessTokenFactory: () => 
+        //   accessTokenFactory: () =>
+
     })
     .build();
 
@@ -65,29 +72,17 @@ connection.onclose(async () => {
 // Start the connection.
 start();
 
-//async function start() {
-//    try {
-//        connection.start().then(function () {
-//            console.log("SignalR Connected.");
-//        });
-//    } catch (err) {
-//        console.log(err);
-//        setTimeout(start, 5000);
-//    }
-//};
-//start();
-
-
 
 function startStreaming() {
     console.log("Stream Çalıştı.");
-    connection.stream("DataStream", 500)
+
+    connection.stream("GetTwoChart", "ETHBTC", "BTCUSDT")
         .subscribe({
             next: (item) => {
-                console.log("Stream Bağlandı.");
-                //item.forEach((coin) => {
+                console.log(item)
+                //item.forEach((item) => {
 
-                //    displayStock(coin);
+                displayStock(item);
                 //});
 
             },
@@ -98,9 +93,37 @@ function startStreaming() {
                 console.log("Hata var: " + err);
             },
         });
+
 }
 
 
+document.getElementById("open2").onclick = function () { moveTicker2() };
+
+//var button = document.getElementById("open2").click();
+
+
+function moveTicker2() {
+
+    console.log("in onclick");
+    connection.stream("GetDetailAsync", "BNBUSDT")
+        .subscribe({
+            next: (item) => {
+                console.log(item)
+                //item.forEach((item) => {
+
+                displayStock(item);
+                //});
+
+            },
+            complete: () => {
+                console.log(item);
+            },
+            error: (err) => {
+                console.log("Hata var: " + err);
+            },
+        });
+
+}
 
 var pos = 30;
 var tickerInterval;
@@ -115,12 +138,12 @@ function moveTicker() {
     stockTickerBody.style.marginLeft = pos + 'px';
 }
 
-//function marketOpened() {
-//    tickerInterval = setInterval(moveTicker, 20);
-//    document.getElementById('open').setAttribute("disabled", "disabled");
-//    document.getElementById('close').removeAttribute("disabled");
-//    document.getElementById('reset').setAttribute("disabled", "disabled");
-//}
+function marketOpened() {
+    tickerInterval = setInterval(moveTicker, 20);
+    document.getElementById('open').setAttribute("disabled", "disabled");
+    document.getElementById('close').removeAttribute("disabled");
+    document.getElementById('reset').setAttribute("disabled", "disabled");
+}
 
 //function marketClosed() {
 //    if (tickerInterval) {
@@ -131,9 +154,11 @@ function moveTicker() {
 //    document.getElementById('reset').removeAttribute("disabled");
 //}
 
+
 function displayStock(stock) {
     addOrReplaceStock(stockTableBody, stock, 'tr', rowTemplate);
     //  addOrReplaceStock(stockTickerBody, stock, 'li', tickerTemplate);
+
 }
 
 function addOrReplaceStock(table, stock, type, template) {
